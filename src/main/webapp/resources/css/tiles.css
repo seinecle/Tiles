@@ -1,0 +1,33 @@
+
+/* 
+    Created on : Jul 14, 2017, 10:11:12 PM
+    Author     : C. Levallois
+*/
+
+
+.tileDesktop{
+    border:1px solid black;
+    display:block;
+}
+
+.tileMobile{
+    border:1px solid black;
+}
+
+.deleteButton{
+    display:inline;
+    float:right;
+}
+
+.tileGood{
+    background:gold;
+}
+
+.nothing{
+    border:0;
+}
+
+
+.elementHidden{
+    visibility: hidden;
+}
