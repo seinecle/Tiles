@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package REST;
+package net.clementlevallois.tiles.rest;
 
 import net.clementlevallois.tiles.model.User;
 import com.google.code.morphia.query.Query;
@@ -23,8 +23,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
-import net.clementlevallois.tiles.controller.ControllerBean;
-import net.clementlevallois.tiles.mobile.UAgentInfo;
+import net.clementlevallois.tiles.admin.AdminPanel;
+import net.clementlevallois.tiles.beans.ControllerBean;
+import net.clementlevallois.tiles.mobiledevicedetection.UAgentInfo;
 import net.clementlevallois.tiles.oauth.TwitterFactory;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -84,7 +85,7 @@ public class SigninResource implements Serializable {
         int index = callbackURL.lastIndexOf("/");
         callbackURL.replace(index, callbackURL.length(), "").append("/callback");
 
-        String urlCallBack = "http://www.exploreyourdata.com/tiles/webresources/login/callback";
+        String urlCallBack = "http://www.exploreyourdata.com/"+AdminPanel.getRoot()+"/webresources/login/callback";
 
 //        twitter4j.User user = null;
 //        // get request object and save to session
@@ -181,12 +182,12 @@ public class SigninResource implements Serializable {
         if (userAgent != null && accept != null) {
             UAgentInfo agent = new UAgentInfo(userAgent, accept);
             if (agent.detectMobileQuick()) {
-                response.sendRedirect("/tiles/tiles_mobile.xhtml?type=" + userIdentified.getAccessToken());
+                response.sendRedirect("http://www.exploreyourdata.com/"+AdminPanel.getRoot()+"/tiles_mobile.xhtml?type=" + userIdentified.getAccessToken());
             } else {
-                response.sendRedirect("/tiles/tiles.xhtml?type=" + userIdentified.getAccessToken());
+                response.sendRedirect("http://www.exploreyourdata.com/"+AdminPanel.getRoot()+"/tiles.xhtml?type=" + userIdentified.getAccessToken());
             }
         } else {
-            response.sendRedirect("/tiles/tiles.xhtml?type=" + userIdentified.getAccessToken());
+            response.sendRedirect("http://www.exploreyourdata.com/"+AdminPanel.getRoot()+"/tiles.xhtml?type=" + userIdentified.getAccessToken());
 
         }
         return null;

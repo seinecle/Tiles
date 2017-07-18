@@ -9,7 +9,8 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.clementlevallois.tiles.controller.ControllerBean;
+import net.clementlevallois.tiles.admin.AdminPanel;
+import net.clementlevallois.tiles.beans.ControllerBean;
 import twitter4j.Twitter;
 import twitter4j.conf.ConfigurationBuilder;
 
@@ -34,13 +35,24 @@ public class TwitterFactory {
 
         String consumerkey = cfg.getProperty("consumerkey");
         String consumersecret = cfg.getProperty("consumersecret");
+        String consumerkeyDev = cfg.getProperty("consumerkeydev");
+        String consumersecretDev = cfg.getProperty("consumersecretdev");
 
         ConfigurationBuilder cb = new ConfigurationBuilder();
+        if (!AdminPanel.devMode){
         cb.setDebugEnabled(true)
                 .setOAuthConsumerKey(consumerkey)
                 .setOAuthConsumerSecret(consumersecret)
                 .setOAuthAccessToken(null)
                 .setOAuthAccessTokenSecret(null);
+        }else{
+        cb.setDebugEnabled(true)
+                .setOAuthConsumerKey(consumerkeyDev)
+                .setOAuthConsumerSecret(consumersecretDev)
+                .setOAuthAccessToken(null)
+                .setOAuthAccessTokenSecret(null);
+            
+        }
         twitter4j.TwitterFactory tf = new twitter4j.TwitterFactory(cb.build());
         return tf.getInstance();
     }

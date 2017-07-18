@@ -8,7 +8,7 @@ package net.clementlevallois.tiles.persistence;
 import net.clementlevallois.tiles.model.TilePersist;
 import com.google.code.morphia.query.Query;
 import java.util.List;
-import net.clementlevallois.tiles.controller.ControllerBean;
+import net.clementlevallois.tiles.beans.ControllerBean;
 
 /**
  *

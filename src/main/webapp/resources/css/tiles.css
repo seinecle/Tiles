@@ -6,12 +6,16 @@
 
 
 .tileDesktop{
-    border:1px solid black;
+    border:1px solid;
     display:block;
+    border-radius: 10px;
+    padding: 10px;
 }
 
 .tileMobile{
-    border:1px solid black;
+    border:1px solid;
+    border-radius: 10px;
+    padding: 10px;
 }
 
 .deleteButton{
@@ -22,6 +26,11 @@
 .tileGood{
     background:gold;
 }
+
+.title{
+    font-weight: bold;
+}
+
 
 .nothing{
     border:0;

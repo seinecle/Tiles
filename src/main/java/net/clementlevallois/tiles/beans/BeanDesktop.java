@@ -2,10 +2,11 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.clementlevallois.tiles.controller;
+package net.clementlevallois.tiles.beans;
 
+import net.clementlevallois.tiles.admin.AdminPanel;
 import net.clementlevallois.tiles.model.TilePersist;
-import Utils.FindComponent;
+import net.clementlevallois.tiles.utils.FindComponent;
 import com.google.code.morphia.query.Query;
 import java.io.Serializable;
 import java.util.Iterator;
@@ -15,6 +16,8 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.component.UIComponent;
 import javax.faces.component.html.HtmlForm;
+import javax.faces.component.html.HtmlInputText;
+import javax.faces.component.html.HtmlOutputText;
 import javax.faces.component.html.HtmlPanelGroup;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
@@ -23,7 +26,6 @@ import net.clementlevallois.tiles.model.User;
 import net.clementlevallois.tiles.persistence.TileSavingOps;
 import net.clementlevallois.tiles.ui.ComponentsCreator;
 import net.clementlevallois.tiles.ui.ComponentsRemover;
-import org.primefaces.component.outputlabel.OutputLabel;
 import org.primefaces.component.panelgrid.PanelGrid;
 import org.primefaces.context.RequestContext;
 
@@ -114,16 +116,13 @@ public class BeanDesktop implements Serializable {
         while (it.hasNext()) {
             UIComponent comp = it.next();
             //removing the form containing components specific to tile creation
-            if (comp.getId().equals("formCreationTile_" + uuid)) {
+            if (comp.getId() != null && comp.getId().equals("formCreationTile_" + uuid)) {
                 comp.getChildren().clear();
                 it.remove();
             }
-            //adding the title
-            if (comp.getId().equals("title_" + uuid)) {
-                OutputLabel title = (OutputLabel) comp;
-                title.setValue(newProjectName + "<br/>");
-            }
         }
+        //add title
+        newTile = ComponentsCreator.addTitle(newTile, newProjectName);
 
         // adding the button "update" so that the user can update the tile later:
         HtmlForm formUpdate = ComponentsCreator.createFormUpdate(uuid, false);
@@ -172,18 +171,10 @@ public class BeanDesktop implements Serializable {
 
             tile = (HtmlPanelGroup) ComponentsCreator.createBasicComponents(tile, t, false);
 
-            OutputLabel labelStatus = new OutputLabel();
-            labelStatus.setId("currentStatus_" + t.getUuid());
-            if (t.getCurrentStatus() == null) {
-                labelStatus.setValue("");
-            } else {
-                labelStatus.setValue("current status: " + t.getCurrentStatus());
-            }
-
             if (t.isGood()) {
-                tile.setStyle("background:" + AdminPanel.backgroundColorGood);
+                tile.setStyle(AdminPanel.styleGood);
             } else {
-                tile.setStyle("background:" + AdminPanel.backgroundColorBad);
+                tile.setStyle(AdminPanel.styleBad);
             }
 
             HtmlForm createFormUpdate = ComponentsCreator.createButtonToDisplayFormUpdate(t.getUuid(), false);
@@ -225,7 +216,7 @@ public class BeanDesktop implements Serializable {
             tilePersist = new TilePersist();
             tilePersist.setUuid(uuid);
             tilePersist.setScreenName(userIdentified.getScreenName());
-            OutputLabel title = (OutputLabel) FindComponent.doFind(FacesContext.getCurrentInstance(), "title_" + uuid);
+            HtmlOutputText title = (HtmlOutputText) FindComponent.doFind(FacesContext.getCurrentInstance(), "title_" + uuid);
             tilePersist.setTitle((String) title.getValue());
         }
 
@@ -247,12 +238,12 @@ public class BeanDesktop implements Serializable {
             String input;
             if (iShouldDoFilled) {
                 input = inputIShouldDo;
-                tile.setStyle("background:" + AdminPanel.backgroundColorBad);
+                tile.setStyle(AdminPanel.styleBad);
                 tilePersist.setGood(false);
                 tilePersist.getToDos().put(currentTimeMillis, input);
             } else {
                 input = inputWaitNextStep;
-                tile.setStyle("background:" + AdminPanel.backgroundColorGood);
+                tile.setStyle(AdminPanel.styleGood);
                 tilePersist.setGood(true);
                 tilePersist.getDones().put(currentTimeMillis, input);
             }
@@ -262,17 +253,21 @@ public class BeanDesktop implements Serializable {
             while (it.hasNext()) {
                 comp = it.next();
                 // registering the latest update (wait or to do) as the current status of the tile
-                if (comp.getId().equals("currentStatus_" + uuid)) {
-                    OutputLabel currentStatus = (OutputLabel) comp;
-                    currentStatus.setValue("current status: "+ input + "<br/>");
+                if (comp.getId() != null && comp.getId().equals("currentStatus_" + uuid)) {
+                    HtmlOutputText createStatusComponent = ComponentsCreator.createStatusComponent(uuid, waitNextStepFilled, input);
+                    HtmlOutputText currentStatus = (HtmlOutputText) comp;
+                    currentStatus.setValue(createStatusComponent.getValue());
                 }
             }
             tilePersist.setCurrentStatus(input);
 
-            // save the tile
-            TileSavingOps.saveTile(tilePersist);
         }
         //UI Updates:
+
+        HtmlInputText input1 = (HtmlInputText) FindComponent.doFind(FacesContext.getCurrentInstance(), "inputWaitNextStep_" + uuid);
+        input1.setValue("");
+        HtmlInputText input2 = (HtmlInputText) FindComponent.doFind(FacesContext.getCurrentInstance(), "inputIShouldDo_" + uuid);
+        input2.setValue("");
 
         //removing the form containing components specific to field updates
         tile = (HtmlPanelGroup) ComponentsRemover.removeComponentByIdFromTile(tile, "formUpdate_" + uuid);
@@ -280,6 +275,9 @@ public class BeanDesktop implements Serializable {
         //adding the UPDATE button so that the UI for update can be shown again by the user:
         HtmlForm createFormUpdate = ComponentsCreator.createButtonToDisplayFormUpdate(uuid, false);
         tile.getChildren().add(createFormUpdate);
+
+        // save the tile
+        TileSavingOps.saveTile(tilePersist);
 
         //update the page
         RequestContext.getCurrentInstance().update(tile.getClientId());

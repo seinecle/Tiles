@@ -5,6 +5,7 @@
  */
 package net.clementlevallois.tiles.ui;
 
+import java.util.Iterator;
 import net.clementlevallois.tiles.model.TilePersist;
 import javax.el.MethodExpression;
 import javax.el.ValueExpression;
@@ -12,9 +13,9 @@ import javax.faces.component.UIComponent;
 import javax.faces.component.html.HtmlCommandButton;
 import javax.faces.component.html.HtmlForm;
 import javax.faces.component.html.HtmlInputText;
+import javax.faces.component.html.HtmlOutputText;
 import javax.faces.context.FacesContext;
 import org.primefaces.component.inputtext.InputText;
-import org.primefaces.component.outputlabel.OutputLabel;
 
 /**
  *
@@ -37,7 +38,7 @@ public class ComponentsCreator {
         inputTitleProject.setValueExpression("value", createValueExpression("#{" + beanName + ".newProjectName}", String.class));
         inputTitleProject.setId("inputTitle_" + uuid);
 
-        OutputLabel labelOutputNameProject = new OutputLabel();
+        HtmlOutputText labelOutputNameProject = new HtmlOutputText();
         labelOutputNameProject.setId("labelTitle_" + uuid);
         labelOutputNameProject.setValue("Which task?<br>");
         labelOutputNameProject.setEscape(false);
@@ -80,23 +81,30 @@ public class ComponentsCreator {
         HtmlInputText inputWaitNextStep = new HtmlInputText();
         inputWaitNextStep.setValueExpression("value", createValueExpression("#{" + beanName + ".projectUpdate}", String.class));
         inputWaitNextStep.setId("inputWaitNextStep_" + uuid);
+        inputWaitNextStep.setValue("");
 
         HtmlInputText inputIShouldDo = new HtmlInputText();
         inputIShouldDo.setValueExpression("value", createValueExpression("#{" + beanName + ".projectUpdate}", String.class));
         inputIShouldDo.setId("inputIShouldDo_" + uuid);
+        inputIShouldDo.setValue("");
 
-        OutputLabel labelWaitingForNextStep = new OutputLabel();
+        HtmlOutputText labelWaitingForNextStep = new HtmlOutputText();
         labelWaitingForNextStep.setId("labelDone_" + uuid);
-        labelWaitingForNextStep.setValue("Waiting for an action?<br/>");
+        labelWaitingForNextStep.setValue("a. Waiting for this input:");
         labelWaitingForNextStep.setEscape(false);
 
-        OutputLabel labelOr = new OutputLabel();
-        labelOr.setValue("or:<br>");
+        HtmlOutputText labelUpdateInstruction = new HtmlOutputText();
+        labelUpdateInstruction.setId("labelUpdateInstructions_" + uuid);
+        labelUpdateInstruction.setValue("Choose one of these 2 updates.");
+        labelUpdateInstruction.setEscape(false);
+
+        HtmlOutputText labelOr = new HtmlOutputText();
+        labelOr.setValue("or:");
         labelOr.setEscape(false);
 
-        OutputLabel labelToDo = new OutputLabel();
+        HtmlOutputText labelToDo = new HtmlOutputText();
         labelToDo.setId("labelToDo_" + uuid);
-        labelToDo.setValue("This is what I should do next -> <br>");
+        labelToDo.setValue("b. I must do:");
         labelToDo.setEscape(false);
 
         HtmlCommandButton okUpdate = new HtmlCommandButton();
@@ -106,12 +114,25 @@ public class ComponentsCreator {
         okUpdate.setId("okUpdate_" + uuid);
         okUpdate.setActionExpression(createMethodExpression(String.format("#{" + beanName + ".updateToDoOrDone('" + uuid + "')}", "ok"), null, String.class));
 
-        formUpdate.getChildren().add(0, labelWaitingForNextStep);
-        formUpdate.getChildren().add(1, inputWaitNextStep);
-        formUpdate.getChildren().add(2, labelOr);
-        formUpdate.getChildren().add(3, labelToDo);
-        formUpdate.getChildren().add(4, inputIShouldDo);
-        formUpdate.getChildren().add(5, okUpdate);
+        formUpdate.getChildren().add(LineBreakGenerator.generate());
+        formUpdate.getChildren().add(labelUpdateInstruction);
+        formUpdate.getChildren().add(LineBreakGenerator.generate());
+        formUpdate.getChildren().add(LineBreakGenerator.generate());
+        formUpdate.getChildren().add(labelWaitingForNextStep);
+        formUpdate.getChildren().add(LineBreakGenerator.generate());
+        formUpdate.getChildren().add(inputWaitNextStep);
+        formUpdate.getChildren().add(LineBreakGenerator.generate());
+        //weird space missing on desktop.
+        if (!mobile) {
+            formUpdate.getChildren().add(LineBreakGenerator.generate());
+        }
+        formUpdate.getChildren().add(labelOr);
+        formUpdate.getChildren().add(LineBreakGenerator.generate());
+        formUpdate.getChildren().add(LineBreakGenerator.generate());
+        formUpdate.getChildren().add(labelToDo);
+        formUpdate.getChildren().add(LineBreakGenerator.generate());
+        formUpdate.getChildren().add(inputIShouldDo);
+        formUpdate.getChildren().add(okUpdate);
 
         return formUpdate;
 
@@ -145,6 +166,38 @@ public class ComponentsCreator {
 
     }
 
+    public static UIComponent addTitle(UIComponent tile, String title) {
+        if (title == null) {
+            title = "";
+        }
+
+        String uuid = tile.getId().split("_")[1];
+        title = "Task: " + title;
+
+        Iterator<UIComponent> it = tile.getChildren().iterator();
+        boolean titleFound = false;
+        while (it.hasNext()) {
+            UIComponent comp = it.next();
+            if (comp.getId() != null && comp.getId().equals("title_" + uuid)) {
+                HtmlOutputText titleComp = (HtmlOutputText) comp;
+                titleComp.setValue(title);
+                titleFound = true;
+            }
+        }
+        if (titleFound) {
+            return tile;
+        }
+
+        HtmlOutputText titleOfTheTile = new HtmlOutputText();
+        titleOfTheTile.setId("title_" + uuid);
+        titleOfTheTile.setStyle("font-weight: bold;");
+        titleOfTheTile.setValue(title);
+        tile.getChildren().add(titleOfTheTile);
+        titleOfTheTile.setEscape(false);
+        return tile;
+
+    }
+
     public static UIComponent createBasicComponents(UIComponent tile, TilePersist tilePersist, boolean mobile) {
         String beanName;
 
@@ -169,28 +222,51 @@ public class ComponentsCreator {
         formClose.getChildren().add(deleteTileButton);
         tile.getChildren().add(formClose);
 
-        OutputLabel titleOfTheTile = new OutputLabel();
+        HtmlOutputText titleOfTheTile = new HtmlOutputText();
         titleOfTheTile.setId("title_" + uuid);
-        if (tilePersist != null) {
-            titleOfTheTile.setValue("<b>task: </b>" + tilePersist.getTitle() + "<br/>");
-        } else {
-            titleOfTheTile.setValue("" + "<br/>");
-        }
-        titleOfTheTile.setEscape(false);
-        tile.getChildren().add(titleOfTheTile);
+        titleOfTheTile.setStyle("font-weight: bold;");
 
-        OutputLabel currentStatus = new OutputLabel();
-        currentStatus.setId("currentStatus_" + uuid);
+        HtmlOutputText currentStatus;
+
         if (tilePersist != null) {
-            currentStatus.setValue("current status: " + tilePersist.getCurrentStatus());
+            currentStatus = createStatusComponent(uuid, tilePersist.isGood(), tilePersist.getCurrentStatus());
+            tile = addTitle(tile, tilePersist.getTitle());
+
+        } else {
+            currentStatus = createStatusComponent(uuid, null, null);
+            tile = addTitle(tile, "");
+        }
+
+        tile.getChildren().add(LineBreakGenerator.generate());
+        tile.getChildren().add(currentStatus);
+        tile.getChildren().add(LineBreakGenerator.generate());
+        tile.getChildren().add(LineBreakGenerator.generate());
+
+        return tile;
+
+    }
+
+    public static HtmlOutputText createStatusComponent(String uuid, Boolean good, String status) {
+        HtmlOutputText currentStatus = new HtmlOutputText();
+        currentStatus.setId("currentStatus_" + uuid);
+        if (status != null && !status.isEmpty()) {
+            String prefix;
+            if (good != null) {
+                if (good) {
+                    prefix = "@nextstep: waiting for \"";
+                } else {
+                    prefix = "@nextstep: I must do \"";
+                }
+                currentStatus.setValue(prefix + status + "\"");
+            } else {
+                currentStatus.setValue("");
+            }
         } else {
             currentStatus.setValue("");
         }
+
         currentStatus.setEscape(false);
-
-        tile.getChildren().add(currentStatus);
-
-        return tile;
+        return currentStatus;
 
     }
 

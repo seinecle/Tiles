@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.clementlevallois.tiles.controller;
+package net.clementlevallois.tiles.beans;
 
+import net.clementlevallois.tiles.admin.AdminPanel;
 import net.clementlevallois.tiles.model.TilePersist;
 import net.clementlevallois.tiles.model.User;
 import com.google.code.morphia.Datastore;
