@@ -23,10 +23,6 @@ public class AdminPanel {
         }
     }
 
-//    //the twitter callback returns to localhost
-//    public static boolean isLocal() {
-//        return true;
-//    }
     //is the Mongo instance local?
     public static boolean isMongoLocal() {
         return false;
